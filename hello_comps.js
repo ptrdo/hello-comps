@@ -221,11 +221,12 @@ const comps = function(selector, data) {
       throw err;
     }
   };
-
-  let instance = null
+  
   const execute = function() {
 
     let key,value,handler,element;
+    
+    console.log("comps_instance", "comps_instance" in window ? window.comps_instance : "none");
 
     if (!!selector && !!data && "test" in data) {
       switch(data.test) {
@@ -243,17 +244,31 @@ const comps = function(selector, data) {
           submitCredentials(data,handler,handler);
           break;
         case "window":
-          if (!!instance) {
-            instance.focus();
+          if ("comps_instance" in window && !window.comps_instance.closed) {
+            window.comps_instance.focus();
           } else {
-            instance = window.open("https://comps.idmod.org", "_blank");
+            window.addEventListener("message", (event) => {
+              if (!!event && "isTrusted" in event && !!event.isTrusted) {
+
+                console.log("child window message received!", event.data);
+
+              }
+            }, false);
+            
+            window["comps_instance"] = window.open("http://localhost:41523", "_blank");
             setTimeout(function(){
-              value = instance.postMessage({
+              window.comps_instance.postMessage({
+                method:"comps.pubsub.subscribe",
+                eventName:"signin",
+                observer:window.location.href,
+                callback:"demo"
+              }, "*");
+              window.comps_instance.postMessage({
                 method:"comps.notifier.notify",
                 args:["Hello from Jupyter!",{level:"success",pause:5000}],
                 observer:window.location.href,
                 callback:"demo"
-              }, "https://comps.idmod.org");
+              }, "*");
               document.querySelector(selector).textContent = `${data.test}! COMPS is launched!`;
             },1000);
           }
