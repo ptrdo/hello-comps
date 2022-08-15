@@ -221,11 +221,12 @@ const comps = function(selector, data) {
       throw err;
     }
   };
-
-  let instance = null
+  
   const execute = function() {
 
     let key,value,handler,element;
+    
+    console.log("comps_instance", "comps_instance" in window ? window.comps_instance : "none");
 
     if (!!selector && !!data && "test" in data) {
       switch(data.test) {
@@ -240,24 +241,68 @@ const comps = function(selector, data) {
             value = info.Response || "No response";
             element.textContent = `${data.test}! ${value}`;
           };
-          submitCredentials(data,handler,handler);
+          // submitCredentials(data,handler,handler);
+          if ("comps_instance" in window && !window.comps_instance.closed) {
+            document.querySelector(selector).textContent = `${data.test}! Attempting signin to COMPS...`;
+            setTimeout(function(){
+              window.comps_instance.focus();
+              window.comps_instance.postMessage({
+                method:"comps.auth.signin",
+                args:data,
+                observer:window.location.href,
+                callback:"demo"
+              }, "*");
+              window.comps_instance.location.reload();
+            },300);
+          } else {
+            document.querySelector(selector).textContent = `${data.test}! A COMPS instance does not exist`;
+          }
           break;
         case "window":
-          if (!!instance) {
-            instance.focus();
+          if ("comps_instance" in window && !window.comps_instance.closed) {
+            window.comps_instance.focus();
           } else {
-            instance = window.open("https://comps.idmod.org", "_blank");
+            window.addEventListener("message", (event) => {
+              if (!!event && "isTrusted" in event && !!event.isTrusted) {
+
+                console.log("child window message received!", event.data);
+
+              }
+            }, false);
+            
+            window["comps_instance"] = window.open(CONFIG.endpoint, "_blank");
             setTimeout(function(){
-              value = instance.postMessage({
+              window.comps_instance.postMessage({
+                method:"comps.pubsub.subscribe",
+                eventName:"signin",
+                observer:window.location.href,
+                callback:"demo"
+              }, "*");
+              window.comps_instance.postMessage({
                 method:"comps.notifier.notify",
                 args:["Hello from Jupyter!",{level:"success",pause:5000}],
                 observer:window.location.href,
                 callback:"demo"
-              }, "https://comps.idmod.org");
+              }, "*");
               document.querySelector(selector).textContent = `${data.test}! COMPS is launched!`;
             },1000);
           }
           break;
+        case "navigate":
+          if ("comps_instance" in window && !window.comps_instance.closed) {
+            document.querySelector(selector).textContent = `${data.test}! Communicating with COMPS...`;
+            setTimeout(function(){
+              window.comps_instance.focus();
+              window.comps_instance.postMessage({
+                method:"comps.router.locationHash",
+                args:"#explore/Experiments",
+                observer:window.location.href,
+                callback:"demo"
+              }, "*");
+            },500);
+          } else {
+            document.querySelector(selector).textContent = `${data.test}! A COMPS instance does not exist`;
+          }
       }
 
     } else {
