@@ -271,6 +271,15 @@ const comps = function(selector, data) {
             }, false);
             
             window["comps_instance"] = window.open(CONFIG.endpoint, "_blank");
+            window.addEventListener("message", (event) => {
+              if (!!event && "isTrusted" in event && !!event.isTrusted) {
+
+                console.log("child window message received!", event.data);
+
+              }
+            }, false);
+            
+            window["comps_instance"] = window.open("http://localhost:41523", "_blank");
             setTimeout(function(){
               window.comps_instance.postMessage({
                 method:"comps.pubsub.subscribe",
