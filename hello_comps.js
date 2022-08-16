@@ -1,7 +1,7 @@
 const comps = function(selector, data) {
 
   const CONFIG = {
-    endpoint: "https://comps2.idmod.org/",
+    endpoint: "http://localhost:41523",
     localize: true,
     context: {
       ApplicationName: "COMPS",
@@ -279,7 +279,7 @@ const comps = function(selector, data) {
               }
             }, false);
             
-            window["comps_instance"] = window.open("http://localhost:41523", "_blank");
+            window["comps_instance"] = window.open(CONFIG.endpoint, "_blank");
             setTimeout(function(){
               window.comps_instance.postMessage({
                 method:"comps.pubsub.subscribe",
