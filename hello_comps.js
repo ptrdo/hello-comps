@@ -242,7 +242,7 @@ const comps = function(selector, data) {
             element.textContent = `${data.test}! ${value}`;
           };
           // submitCredentials(data,handler,handler);
-          if ("comps_instance" in window && !window.comps_instance.closed) {
+          if ("comps_instance" in window && window.comps_instance != null && !window.comps_instance.closed) {
             document.querySelector(selector).textContent = `${data.test}! Attempting signin to COMPS...`;
             setTimeout(function(){
               window.comps_instance.focus();
@@ -259,7 +259,10 @@ const comps = function(selector, data) {
           }
           break;
         case "window":
-          if ("comps_instance" in window && !window.comps_instance.closed) {
+          
+          window.testing = 123;
+          
+          if ("comps_instance" in window && window.comps_instance != null && !window.comps_instance.closed) {
             window.comps_instance.focus();
           } else {
             window.addEventListener("message", (event) => {
@@ -278,7 +281,8 @@ const comps = function(selector, data) {
 
               }
             }, false);
-            
+
+            document.querySelector(selector).textContent = `${data.test}! COMPS is launched!`;
             window["comps_instance"] = window.open(CONFIG.endpoint, "_blank");
             setTimeout(function(){
               window.comps_instance.postMessage({
@@ -293,12 +297,11 @@ const comps = function(selector, data) {
                 observer:window.location.href,
                 callback:"demo"
               }, "*");
-              document.querySelector(selector).textContent = `${data.test}! COMPS is launched!`;
             },1000);
           }
           break;
         case "navigate":
-          if ("comps_instance" in window && !window.comps_instance.closed) {
+          if ("comps_instance" in window && window.comps_instance != null && !window.comps_instance.closed) {
             document.querySelector(selector).textContent = `${data.test}! Communicating with COMPS...`;
             setTimeout(function(){
               window.comps_instance.focus();
